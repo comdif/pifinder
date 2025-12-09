@@ -10,7 +10,7 @@ for /L %%i in (0,1,255) do @ping -n 1 -l 1 -w 1 %subip%.%%i -4 | findstr -m "=32
 FOR /F "delims=" %%r IN ('"arp -a|findstr 28-cd-c1"') DO SET result1=%%r
 FOR /F "delims=" %%s IN ('"arp -a|findstr 2c-cf-67"') DO SET result2=%%s
 FOR /F "delims=" %%t IN ('"arp -a|findstr 3a-35-41"') DO SET result3=%%t
-FOR /F "delims=" %%u IN ('"arp -a|findstr 88-a2-se"') DO SET result4=%%u
+FOR /F "delims=" %%u IN ('"arp -a|findstr 88-a2-9e"') DO SET result4=%%u
 FOR /F "delims=" %%v IN ('"arp -a|findstr b8-27-eb"') DO SET result5=%%v
 FOR /F "delims=" %%w IN ('"arp -a|findstr d8-3a-dd"') DO SET result6=%%w
 FOR /F "delims=" %%x IN ('"arp -a|findstr dc-a6-32"') DO SET result7=%%x
