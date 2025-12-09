@@ -15,6 +15,7 @@ FOR /F "delims=" %%v IN ('"arp -a|findstr b8-27-eb"') DO SET result5=%%v
 FOR /F "delims=" %%w IN ('"arp -a|findstr d8-3a-dd"') DO SET result6=%%w
 FOR /F "delims=" %%x IN ('"arp -a|findstr dc-a6-32"') DO SET result7=%%x
 FOR /F "delims=" %%y IN ('"arp -a|findstr e4-5f-01"') DO SET result8=%%y
+88:a2:9e
 
 echo ####################### RASPBERRY #######################
 IF NOT "%result1%"=="" ECHO %result1%
