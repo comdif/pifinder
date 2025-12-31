@@ -1,31 +1,43 @@
 @echo off
+setlocal enabledelayedexpansion
 cls
-for /f "tokens=2,3 delims={,}" %%a in ('"WMIC NICConfig where IPEnabled="True" get DefaultIPGateway /value | find "I" "') do set mip=%%~a
-for /f "delims=" %%i in ('echo %mip%') do set subip=%%i
-for %%i in (%subip%) do set subip=%%~ni
-echo First step network discovering %subip% be patient
-for /L %%i in (0,1,255) do @ping -n 1 -l 1 -w 1 %subip%.%%i -4 | findstr -m "=32"
 
-## TEST All Raspberry PI MAC sourced from Wiresharck ##
-FOR /F "delims=" %%r IN ('"arp -a|findstr 28-cd-c1"') DO SET result1=%%r
-FOR /F "delims=" %%s IN ('"arp -a|findstr 2c-cf-67"') DO SET result2=%%s
-FOR /F "delims=" %%t IN ('"arp -a|findstr 3a-35-41"') DO SET result3=%%t
-FOR /F "delims=" %%u IN ('"arp -a|findstr 88-a2-9e"') DO SET result4=%%u
-FOR /F "delims=" %%v IN ('"arp -a|findstr b8-27-eb"') DO SET result5=%%v
-FOR /F "delims=" %%w IN ('"arp -a|findstr d8-3a-dd"') DO SET result6=%%w
-FOR /F "delims=" %%x IN ('"arp -a|findstr dc-a6-32"') DO SET result7=%%x
-FOR /F "delims=" %%y IN ('"arp -a|findstr e4-5f-01"') DO SET result8=%%y
+rem --- Get default gateway from IPv4 route table (robust) ---
+for /f "tokens=3" %%A in ('route print -4 ^| findstr /C:" 0.0.0.0 "') do (
+  set "mip=%%A"
+  goto :gotgw
+)
+:gotgw
+if not defined mip (
+  echo Could not determine default gateway.
+  pause
+  exit /b 1
+)
 
+rem --- Extract first three octets to form the subnet prefix (e.g. 192.168.1) ---
+for /f "tokens=1-3 delims=." %%A in ("%mip%") do set "subnet=%%A.%%B.%%C"
+
+echo First step: network discovery on %subnet%.0/24 please be patient.
+
+rem --- Ping sweep to populate the ARP table (quiet, fast) ---
+for /L %%i in (1,1,254) do (
+  ping -n 1 -w 1 %subnet%.%%i >nul
+)
+
+rem --- MAC prefixes to look for (treated as an "array") ---
+set "macs=28-cd-c1 2c-cf-67 3a-35-41 88-a2-9e b8-27-eb d8-3a-dd dc-a6-32 e4-5f-01"
+
+echo.
 echo ####################### RASPBERRY FOUND #######################
-IF NOT "%result1%"=="" ECHO %result1%
-IF NOT "%result2%"=="" ECHO %result2%
-IF NOT "%result3%"=="" ECHO %result3%
-IF NOT "%result4%"=="" ECHO %result4%
-IF NOT "%result5%"=="" ECHO %result5%
-IF NOT "%result6%"=="" ECHO %result6%
-IF NOT "%result7%"=="" ECHO %result7%
-IF NOT "%result8%"=="" ECHO %result8%
+set "found=0"
+for %%m in (%macs%) do (
+  for /f "delims=" %%r in ('arp -a ^| findstr /i "%%m"') do (
+    echo %%r
+    set "found=1"
+  )
+)
+
+if "!found!"=="0" echo No Raspberry Pi MAC prefixes found.
 echo ###############################################################
-
-
 pause
+endlocal
